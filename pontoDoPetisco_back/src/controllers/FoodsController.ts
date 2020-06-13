@@ -9,7 +9,7 @@ class FoodsController {
       return {
         id: food.id,
         title: food.title,
-        image_url: `http://localhost:3333/${food.image}`,
+        image_url: `http://localhost:3333/temp/${food.image}`,
       };
     });
     return response.json(serializedFoods);
