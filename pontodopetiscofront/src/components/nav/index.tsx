@@ -1,6 +1,6 @@
 import React from "react";
 import { isBrowser } from "react-device-detect";
-import Icon from "../../../../images/icon.png";
+import Icon from "../../images/icon.png";
 
 const Nav = () => {
   const url = document.location.href;
@@ -8,7 +8,7 @@ const Nav = () => {
   return (
     <nav
       id="PontoCerto"
-      className="navbar navbar-expand-lg navbar-light bg-light"
+      className="navbar navbar-expand-sm navbar-light bg-light"
     >
       <div className="container">
         <button
