@@ -50,3 +50,13 @@ a:hover {
   color: white !important;
   text-decoration: none !important;
 }
+
+.selected {
+  filter: brightness(0.4);
+  border: solid 2px black;
+}
+
+.leaflet-container {
+  height: 500px;
+  width: 100%;
+}

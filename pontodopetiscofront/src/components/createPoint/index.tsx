@@ -1,8 +1,111 @@
-import React from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import Nav from "../nav";
 import { Link } from "react-router-dom";
+import { Map, TileLayer, Marker } from "react-leaflet";
+import axios from "axios";
+import api from "../../service/api";
+import { LeafletMouseEvent } from "leaflet";
+
+interface Items {
+  id: number;
+  title: string;
+  image_url: string;
+}
+
+interface UF {
+  id: number;
+  name: string;
+  initials: string;
+}
+
+interface StateBr {
+  id: number;
+  name: string;
+}
+
+interface IBGEResponse {
+  id: number;
+  sigla: string;
+  nome: string;
+}
 
 const CreatePoint = () => {
+  const [state, setState] = useState<Items[]>([]);
+  const [initials, setInitials] = useState<UF[]>([]);
+  const [selectedUf, setSelectedUf] = useState("0");
+  const [selectedStateBr, setselectedStateBr] = useState<StateBr[]>([]);
+  const [selecteCity, setSelectedselecteCity] = useState("0");
+  const [clickUser, setclickUser] = useState<[number, number]>([0, 0]);
+  const [initialPosotion, setinitialPosotion] = useState<[number, number]>([
+    0,
+    0,
+  ]);
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+      setinitialPosotion([latitude, longitude]);
+    });
+  }, []);
+
+  useEffect(() => {
+    api
+      .get("items")
+      .then((response) => {
+        setState(response.data);
+      })
+      .catch((e) => console.log(e));
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get<IBGEResponse[]>(
+        "https://servicodados.ibge.gov.br/api/v1/localidades/estados"
+      )
+      .then((response) => {
+        setInitials(
+          response.data.map((state) => {
+            return {
+              id: state.id,
+              name: state.nome,
+              initials: state.sigla,
+            };
+          })
+        );
+      })
+      .catch((e) => console.log(e));
+  }, []);
+
+  useEffect(() => {
+    api
+      .get<IBGEResponse[]>(
+        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedUf}/municipios`
+      )
+      .then((response) => {
+        setselectedStateBr(
+          response.data.map((state) => {
+            return {
+              id: state.id,
+              name: state.nome,
+            };
+          })
+        );
+      })
+      .catch((e) => console.log(e));
+  }, [selectedUf]);
+
+  function randonUF(event: ChangeEvent<HTMLSelectElement>) {
+    setSelectedUf(event.target.value);
+  }
+
+  function randonCity(event: ChangeEvent<HTMLSelectElement>) {
+    setSelectedselecteCity(event.target.value);
+  }
+
+  function randonClick(event: LeafletMouseEvent) {
+    setclickUser([event.latlng.lat, event.latlng.lng]);
+  }
+
   return (
     <>
       <Nav></Nav>
@@ -15,32 +118,36 @@ const CreatePoint = () => {
                 ponto de fast food
               </h1>
             </div>
-            imagem aki
             <div className="mt-5 form-group">
               <h4>Dados</h4>
-              <label htmlFor="formGroupExampleInput">Example label</label>
+              <label htmlFor="name">Nome da entidade</label>
               <input
                 type="text"
                 className="form-control"
-                id="formGroupExampleInput"
-                placeholder="Example input placeholder"
+                id="name"
+                name="name"
+                placeholder="Meu fast food"
               />
             </div>
             <div className="form-row">
               <div className="col-lg-6 col-sm-12">
-                <label htmlFor="formGroupExampleInput">Example label</label>
+                <label htmlFor="email">Email</label>
                 <input
-                  type="text"
+                  type="email"
+                  id="email"
+                  name="email"
                   className="form-control"
-                  placeholder="First name"
+                  placeholder="exemplo@gmail.com"
                 />
               </div>
               <div className="col-lg-6 col-sm-12">
-                <label htmlFor="formGroupExampleInput">Example label</label>
+                <label htmlFor="fone">WhatsApp</label>
                 <input
-                  type="text"
+                  type="tel"
+                  id="fone"
+                  name="fone"
                   className="form-control"
-                  placeholder="Last name"
+                  placeholder="(43) 99999-9999"
                 />
               </div>
             </div>
@@ -49,130 +156,74 @@ const CreatePoint = () => {
               <h4 className="mr-auto">Endereço</h4>
               <p>Selecione o endereço no mapa</p>
             </div>
-            mapa aki
+            <div className="mb-5 form-row">
+              <Map center={initialPosotion} zoom={15} onclick={randonClick}>
+                <TileLayer
+                  attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker position={clickUser} />
+              </Map>
+            </div>
             <div className="form-row">
               <div className="col-lg-5 col-sm-12">
-                <label htmlFor="formGroupExampleInput">Example label</label>
-                <select className="form-control">
-                  <option>Default select</option>
+                <label htmlFor="uf">Estado (UF)</label>
+                <select
+                  onChange={randonUF}
+                  value={selectedUf}
+                  name="uf"
+                  id="uf"
+                  className="form-control"
+                >
+                  <option value="0">Selecione uma UF</option>
+                  {initials.map((uf) => (
+                    <option key={uf.id} value={uf.id}>
+                      {uf.name}, {uf.initials}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="col-lg-5 col-sm-10">
-                <label htmlFor="formGroupExampleInput">Example label</label>
-                <select className="form-control">
-                  <option>Default select</option>
+                <label htmlFor="city">Cidade</label>
+                <select
+                  id="city"
+                  onChange={randonCity}
+                  value={selecteCity}
+                  name="city"
+                  className="form-control"
+                >
+                  <option value="0">Selecione uma cidade</option>
+                  {selectedStateBr.map((city) => (
+                    <option key={city.id} value={city.id}>
+                      {city.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="col-lg-2 col-sm-2">
-                <label htmlFor="formGroupExampleInput">Example label</label>
+                <label htmlFor="number">Numero</label>
                 <input
                   type="text"
+                  id="number"
+                  name="number"
                   className="form-control"
-                  placeholder="Last name"
+                  placeholder="Numero"
                 />
               </div>
             </div>
             <br />
             <div className="form-row">
               <h4 className="mr-auto">Ítens do fast food</h4>
+
+              <p>Selecione um ou mais ítens abaixo</p>
             </div>
-            <div className="form-row">
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">1</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="First name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">2</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="First name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">3</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Last name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">4</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="First name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">5</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Last name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">6</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="First name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">7</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Last name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">8</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="First name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">9</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Last name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">10</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="First name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">11</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Last name"
-                />
-              </div>
-              <div className="col-lg-3 col-sm-4">
-                <label htmlFor="formGroupExampleInput">12</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="First name"
-                />
-              </div>
+            <div className="text-center form-row">
+              {state.map((item) => (
+                <div key={item.id} className="mt-4 col-lg-3 col-sm-4">
+                  <strong className="text-center">{item.image_url}</strong>
+                  <img src={item.image_url} alt="test" width="80%" />
+                </div>
+              ))}
             </div>
             <div className="mt-5 form-row">
               <button type="submit" className="mr-auto btn btn-success btn-lg">
