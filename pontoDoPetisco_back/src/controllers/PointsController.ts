@@ -39,12 +39,13 @@ class PointsController {
     const {
       image,
       name,
+      email,
       whatsapp,
+      number,
+      UF,
+      city,
       latitude,
       longitude,
-      number,
-      city,
-      UF,
       foods,
     } = request.body;
 
@@ -53,12 +54,13 @@ class PointsController {
     const point = {
       image: "fake.png",
       name,
+      email,
       whatsapp,
+      number,
+      UF,
+      city,
       latitude,
       longitude,
-      number,
-      city,
-      UF,
     };
 
     const insertedIds = await trx("point").insert(point);
