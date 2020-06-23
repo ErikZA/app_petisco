@@ -5,7 +5,12 @@ import { Map, TileLayer, Marker } from "react-leaflet";
 import axios from "axios";
 import api from "../../service/api";
 import { LeafletMouseEvent } from "leaflet";
+import DropZone from "../dropZone";
 
+interface responsePromise {
+  statusCode: number;
+  message: string;
+}
 interface Items {
   id: number;
   title: string;
@@ -43,6 +48,7 @@ const CreatePoint = () => {
   const [selectedStateBr, setselectedStateBr] = useState<StateBr[]>([]);
   const [selecteCity, setSelectedselecteCity] = useState("0");
   const [clickUser, setclickUser] = useState<[number, number]>([0, 0]);
+  const [selectedFile, setSelectedFile] = useState<File>();
   const [initialPosotion, setinitialPosotion] = useState<[number, number]>([
     0,
     0,
@@ -137,21 +143,36 @@ const CreatePoint = () => {
     const city = selecteCity;
     const [latitude, longitude] = clickUser;
     const foods = stateSelectedFoods;
-    const data = {
-      image: "fake.png",
-      name,
-      email,
-      whatsapp,
-      number,
-      UF,
-      city,
-      foods,
-      latitude,
-      longitude,
-    };
+    const fileUrl = selectedFile;
+    const data = new FormData();
+    if (fileUrl) {
+      data.append("image", fileUrl);
+    }
+    data.append("name", name);
+    data.append("email", email);
+    data.append("whatsapp", whatsapp);
+    data.append("number", number);
+    data.append("UF", UF);
+    data.append("city", city);
+    data.append("foods", foods.join(","));
+    data.append("latitude", String(latitude));
+    data.append("longitude", String(longitude));
+
     if (foods.length > 0) {
-      await api.post("points", data);
-      history.push("create-success");
+      await api
+        .post<responsePromise>("points", data)
+        .then((response) => {
+          if (response.status === 200) {
+            history.push("create-success");
+          } else {
+            alert(
+              `O formulario foi preenchido incorretamente nos campos: ${response.data.message}`
+            );
+          }
+        })
+        .catch((error) => {
+          alert(`O formulario foi preenchido incorretamente`);
+        });
     } else {
       alert("Um ou mais Fast Foods devem ser selecionados");
     }
@@ -171,6 +192,14 @@ const CreatePoint = () => {
                 Cadastro do <br />
                 ponto de fast food
               </h1>
+            </div>
+            <div className="mt-5 text-center">
+              <div
+                id="dropZone"
+                className="jumbotron jumbotron-fluid ml-4 mr-4 border border-dark"
+              >
+                <DropZone onFileUploaded={setSelectedFile} />
+              </div>
             </div>
             <div className="mt-5 form-group">
               <h4>Dados</h4>
