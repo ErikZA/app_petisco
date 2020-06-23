@@ -241,7 +241,7 @@ const CreatePoint = () => {
                 >
                   <option value="0">Selecione uma UF</option>
                   {initials.map((uf) => (
-                    <option key={uf.id} value={uf.id}>
+                    <option key={uf.id} value={uf.initials}>
                       {uf.name}, {uf.initials}
                     </option>
                   ))}
@@ -259,7 +259,7 @@ const CreatePoint = () => {
                 >
                   <option value="0">Selecione uma cidade</option>
                   {selectedStateBr.map((city) => (
-                    <option key={city.id} value={city.id}>
+                    <option key={city.id} value={city.name}>
                       {city.name}
                     </option>
                   ))}

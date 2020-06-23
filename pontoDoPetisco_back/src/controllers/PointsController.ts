@@ -4,24 +4,23 @@ import knex from "../database/connection";
 class PointsController {
   async index(request: Request, response: Response) {
     const { city, UF, items } = request.query;
-
     const parsedFoods = String(items)
       .split(",")
       .map((food) => food.trim());
 
     const points = await knex("point")
-      .join("point_foods", "point.id", "=", "point_foods.point.id")
+      .join("point_foods", "point.id", "=", "point_foods.point_id")
       .whereIn("point_foods.food_id", parsedFoods)
       .where("city", String(city))
       .where("UF", String(UF))
       .distinct()
       .select("point.*");
-
     response.json(points);
   }
 
   async show(request: Request, response: Response) {
     const { id } = request.params;
+    console.log(id);
     const point = await knex("point").where("id", id).first();
     if (!point) {
       return response.status(400).json({ message: "Point not found" });
@@ -29,10 +28,10 @@ class PointsController {
 
     const items = await knex("food")
       .join("point_foods", "food.id", "=", "point_foods.food_id")
-      .where("point_foods.food_id", id)
+      .where("point_foods.point_id", id)
       .select("food.title");
-
-    return response.json(point);
+    console.log(items);
+    return response.json({ point: point, items: items });
   }
 
   async create(request: Request, response: Response) {
