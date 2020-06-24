@@ -10,7 +10,7 @@ class FoodsController {
       return {
         id: food.id,
         title: food.title,
-        image_url: `http://192.168.0.105:3333/temp/${food.image}`,
+        image_url: `https://backpontodopetisco.herokuapp.com/temp/${food.image}`,
       };
     });
     return response.json(serializedFoods);
