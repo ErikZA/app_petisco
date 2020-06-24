@@ -23,12 +23,13 @@
 ## Web Ponto do Petisco
 
 <p align="center">
- <img src="images/Image_9.jpeg" alt="Tela 9" width="25%" />
+ <img src="images/Image_9.jpeg" alt="Tela 9" width="55%" />
 
- <img src="images/Image_10.jpeg" alt="Tela 10" width="25%"/>
+ <img src="images/Image_10.jpeg" alt="Tela 10" width="35%"/>
  
  
- <img src="images/Image_11.jpeg" alt="Tela 11" width="25%" />
+<img src="images/Image_11.jpeg" alt="Tela 11" width="55%" />
+ 
 </p>
 
 
