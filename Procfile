@@ -1,2 +1,2 @@
-PROJECT_PATH=pontoDoPetisco_back/
+config: PROJECT_PATH=pontoDoPetisco_back/
 web: yarn start
